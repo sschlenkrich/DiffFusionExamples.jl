@@ -1,2 +1,3 @@
-# InterestRateDerivatives.jl
+# DiffFusionExamples.jl
+
 Example notebooks with DiffFusion.jl
