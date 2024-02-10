@@ -141,3 +141,94 @@ function plot_densities(
     )
     return p
 end
+
+
+function plot_history(
+    history;
+    plot_size = (900, 600),
+    font_size = 8,
+    skip = 0,
+    )
+    #
+    history = history[skip+1:end]
+    iter = [ h.i for h in history ]
+    p1 = plot(iter, [ h.y for h in history ],
+        xlabel = "iteration",
+        ylabel = "|r|",
+        xaxis = :log,
+        legend = false,
+        xtickfontsize = font_size,
+        ytickfontsize = font_size,
+        xguidefontsize = font_size,
+        yguidefontsize = font_size,
+        legendfontsize = font_size,
+        plot_titlefontsize = font_size,
+    )
+    p2 = plot(iter, [ h.s for h in history ],
+        xlabel = "iteration",
+        ylabel = "|s|",
+        xaxis = :log,
+        legend = false,
+        xtickfontsize = font_size,
+        ytickfontsize = font_size,
+        xguidefontsize = font_size,
+        yguidefontsize = font_size,
+        legendfontsize = font_size,
+        plot_titlefontsize = font_size,
+    )
+    p3 = plot(iter, [ h.arc for h in history ],
+        xlabel = "iteration",
+        ylabel = "|arc|",
+        xaxis = :log,
+        legend = false,
+        xtickfontsize = font_size,
+        ytickfontsize = font_size,
+        xguidefontsize = font_size,
+        yguidefontsize = font_size,
+        legendfontsize = font_size,
+        plot_titlefontsize = font_size,
+    )
+    p4 = plot(iter, [ h.step_y for h in history ],
+        xlabel = "iteration",
+        ylabel = "|step_y|",
+        xaxis = :log,
+        legend = false,
+        xtickfontsize = font_size,
+        ytickfontsize = font_size,
+        xguidefontsize = font_size,
+        yguidefontsize = font_size,
+        legendfontsize = font_size,
+        plot_titlefontsize = font_size,
+    )
+    p5 = plot(iter, [ h.step_s for h in history ],
+        xlabel = "iteration",
+        ylabel = "|step_s|",
+        xaxis = :log,
+        legend = false,
+        xtickfontsize = font_size,
+        ytickfontsize = font_size,
+        xguidefontsize = font_size,
+        yguidefontsize = font_size,
+        legendfontsize = font_size,
+        plot_titlefontsize = font_size,
+    )
+    p6 = plot(iter, [ h.step_s / h.s for h in history ],
+        xlabel = "iteration",
+        ylabel = "|step_s / s|",
+        xaxis = :log,
+        legend = false,
+        xtickfontsize = font_size,
+        ytickfontsize = font_size,
+        xguidefontsize = font_size,
+        yguidefontsize = font_size,
+        legendfontsize = font_size,
+        plot_titlefontsize = font_size,
+    )
+    p = plot(p1, p2, p3, p4, p5, p6,
+      layout=(2, 3),
+      size = plot_size,
+      left_margin = 5Plots.mm,  # adjust this if xaxis label is cut off
+      bottom_margin = 5Plots.mm,
+    )
+    return p
+end
