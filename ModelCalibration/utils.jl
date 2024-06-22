@@ -373,19 +373,20 @@ function update_rates_plots!(
         ("EUR", 2),
         ("EUR", 5),
         ("EUR", 10),
+        ("EUR", 15),
         ("EUR", 20),
     ]
     (v, C) = DiffFusion.reference_rate_volatility_and_correlation(keys_and_terms, ctx, mdl, ch, 0.0, 1.0/12.0)
     #
-    model_terms = [1.0, 2.0, 5.0, 10.0, 20.0]
-    v_eur = v[1:5]
+    model_terms = [1.0, 2.0, 5.0, 10.0, 15.0, 20.0]
+    v_eur = v[1:6]
     #
     if plot_vols
         display("text/markdown", "## Volatilities:")
         display(plot_volatility(std_table, "EUR", model_terms, v_eur, 1.0e+4))
     end
     #
-    rf_eur = [ ("EUR", 1), ("EUR", 2), ("EUR", 5), ("EUR", 10), ("EUR", 20),]
+    rf_eur = [ ("EUR", 1), ("EUR", 2), ("EUR", 5), ("EUR", 10), ("EUR", 15), ("EUR", 20),]
     #
     if plot_rates_corrs
         display("text/markdown", "## Rates Correlations:")
@@ -435,6 +436,7 @@ function update_hybrid_plots!(
         ("EUR", 2),
         ("EUR", 5),
         ("EUR", 10),
+        ("EUR", 15),
         ("EUR", 20),
         #
         ("USD", 1),
@@ -447,6 +449,7 @@ function update_hybrid_plots!(
         ("GBP", 2),
         ("GBP", 5),
         ("GBP", 10),
+        ("GBP", 15),
         ("GBP", 20),
         #
         ("USD-EUR", 0),
@@ -454,25 +457,27 @@ function update_hybrid_plots!(
     ]
     (v, C) = DiffFusion.reference_rate_volatility_and_correlation(keys_and_terms, ctx, mdl, ch, 0.0, 1.0/12.0)
     #
-    model_terms = [1.0, 2.0, 5.0, 10.0, 20.0]
-    v_eur = v[1:5]
-    v_usd = v[6:10]
-    v_gbp = v[11:15]
-    v_usd_eur = v[16:16]
-    v_gbp_eur = v[17:17];
+    model_terms_eur = [1.0, 2.0, 5.0, 10.0, 15.0, 20.0]
+    model_terms_usd = [1.0, 2.0, 5.0, 10.0, 20.0]
+    model_terms_gbp = [1.0, 2.0, 5.0, 10.0, 15.0, 20.0]
+    v_eur = v[1:6]
+    v_usd = v[7:11]
+    v_gbp = v[12:17]
+    v_usd_eur = v[18:18]
+    v_gbp_eur = v[19:19];
     #
     if plot_vols
         display("text/markdown", "## Volatilities:")
-        display(plot_volatility(std_table, "EUR", model_terms, v_eur, 1.0e+4))
-        display(plot_volatility(std_table, "USD", model_terms, v_usd, 1.0e+4))
-        display(plot_volatility(std_table, "GBP", model_terms, v_gbp, 1.0e+4))
+        display(plot_volatility(std_table, "EUR", model_terms_eur, v_eur, 1.0e+4))
+        display(plot_volatility(std_table, "USD", model_terms_usd, v_usd, 1.0e+4))
+        display(plot_volatility(std_table, "GBP", model_terms_gbp, v_gbp, 1.0e+4))
         display(plot_volatility(std_table, "USD-EUR", [0.0], v_usd_eur, 1.0e+2))
         display(plot_volatility(std_table, "GBP-EUR", [0.0], v_gbp_eur, 1.0e+2))
     end
     #
-    rf_eur = [ ("EUR", 1), ("EUR", 2), ("EUR", 5), ("EUR", 10), ("EUR", 20),]
+    rf_eur = [ ("EUR", 1), ("EUR", 2), ("EUR", 5), ("EUR", 10), ("EUR", 15), ("EUR", 20),]
     rf_usd = [ ("USD", 1), ("USD", 2), ("USD", 5), ("USD", 10), ("USD", 20),]
-    rf_gbp = [ ("GBP", 1), ("GBP", 2), ("GBP", 5), ("GBP", 10), ("GBP", 20),]
+    rf_gbp = [ ("GBP", 1), ("GBP", 2), ("GBP", 5), ("GBP", 10), ("GBP", 15), ("GBP", 20),]
     rf_usd_eur = [ ("USD-EUR", 0),]
     rf_gbp_eur = [ ("GBP-EUR", 0),];
     #
@@ -558,12 +563,13 @@ function rates_model_outputs(X::AbstractVector)
         ("EUR", 2),
         ("EUR", 5),
         ("EUR", 10),
+        ("EUR", 15),
         ("EUR", 20),
     ]
     (v, C) = DiffFusion.reference_rate_volatility_and_correlation(keys_and_terms, ctx, mdl, ch, 0.0, 1.0/12.0)
     #
-    v_eur = v[1:5]
-    rf_eur = [ ("EUR", 1), ("EUR", 2), ("EUR", 5), ("EUR", 10), ("EUR", 20),]
+    v_eur = v[1:6]
+    rf_eur = [ ("EUR", 1), ("EUR", 2), ("EUR", 5), ("EUR", 10), ("EUR", 15), ("EUR", 20),]
     #
     idx = make_index_list(rf_eur)
     c_eur = model_correlation(idx, keys_and_terms, C)
@@ -619,7 +625,7 @@ function plot_model_sensitivities(model_params)
         "EUR_f_1__EUR_f_3",
     ]
     #
-    rf_eur = [ ("EUR", 1), ("EUR", 2), ("EUR", 5), ("EUR", 10), ("EUR", 20),]
+    rf_eur = [ ("EUR", 1), ("EUR", 2), ("EUR", 5), ("EUR", 10), ("EUR", 15), ("EUR", 20),]
     y_labels_vol = [
         l[1] * "_" * string(l[2])
         for l in rf_eur
@@ -636,17 +642,17 @@ function plot_model_sensitivities(model_params)
     x3 = x_labels[7:9]
     x4 = x_labels[10:12]
     #
-    y1 = y_labels[1:5]
-    y2 = y_labels[6:15]
+    y1 = y_labels[1:6]
+    y2 = y_labels[7:21]
     #
-    J11 = J[1:5,1:3]  * 1e+4    # bp / y
-    J21 = J[6:15,1:3] * 1e+2    # %  / y
-    J12 = J[1:5,4:6]  * 1e+2    # bp / %
-    J22 = J[6:15,4:6]           # %  / %
-    J13 = J[1:5,7:9]            # bp / bp
-    J23 = J[6:15,7:9] * 1e-2    # %  / bp
-    J14 = J[1:5,10:12] * 1e+2   # bp / %
-    J24 = J[6:15,10:12]         # % / %
+    J11 = J[1:6,1:3]  * 1e+4    # bp / y
+    J21 = J[7:21,1:3] * 1e+2    # %  / y
+    J12 = J[1:6,4:6]  * 1e+2    # bp / %
+    J22 = J[7:21,4:6]           # %  / %
+    J13 = J[1:6,7:9]            # bp / bp
+    J23 = J[7:21,7:9] * 1e-2    # %  / bp
+    J14 = J[1:6,10:12] * 1e+2   # bp / %
+    J24 = J[7:21,10:12]         # % / %
     #
     c_scale = "YlOrRd"
     #
