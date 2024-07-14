@@ -207,12 +207,12 @@ end
 
 
 """
-    rates_model(model_params)
+    rates_model(model_params, scaling_type)
 
 Generate `Context`, `GaussianHjmModel` and `CorrelationHolder`
 for a 3-factor rates interest rate model for EUR.
 """
-function rates_model(model_params)
+function rates_model(model_params, scaling_type)
     #
     ch = DiffFusion.correlation_holder("Std", "<>", typeof(model_params[("EUR_f_1","EUR_f_2")]))
     for t in model_params
@@ -234,7 +234,7 @@ function rates_model(model_params)
         DiffFusion.backward_flat_volatility("",t0, [ d[("EUR_f_1","")] d[("EUR_f_2","")] d[("EUR_f_3","")] ]' ),  # sigma
         ch,
         nothing,
-        DiffFusion.ZeroRateScaling,
+        scaling_type, # DiffFusion.ZeroRateScaling,
     )
     #
     ctx = DiffFusion.Context("Std",
@@ -253,13 +253,23 @@ end
 
 
 """
-    hybrid_model(model_params)
+    hybrid_model(model_params, scaling_type)
 
 Generate `Context`, `SimpleModel` and `CorrelationHolder`
 for a hybrid G3 model (EUR-USD-GBP) with 3-factor rates
 models. 
 """
-function hybrid_model(model_params)
+function hybrid_model(model_params, scaling_type)
+    # if model_params holds a string we assume that we want a pre-defined DiffFusion.jl model.
+    if isa(model_params, AbstractString)
+        ex = DiffFusion.Examples.load(model_params)
+        ex = DiffFusion.Examples.build(ex)
+        #
+        ctx = DiffFusion.Examples.context(ex)
+        mdl = DiffFusion.Examples.model(ex)
+        ch = DiffFusion.Examples.correlation_holder(ex)
+        return (ctx, mdl, ch)
+    end
     #
     ch = DiffFusion.correlation_holder("Std")
     for t in model_params
@@ -280,7 +290,7 @@ function hybrid_model(model_params)
         DiffFusion.backward_flat_volatility("",t0, [ d[("EUR_f_1","")] d[("EUR_f_2","")] d[("EUR_f_3","")] ]' ),  # sigma
         ch,
         nothing,
-        DiffFusion.ZeroRateScaling,
+        scaling_type, # DiffFusion.ZeroRateScaling,
     )
     fx_usd_eur = DiffFusion.lognormal_asset_model(
         "USD-EUR",
@@ -295,7 +305,7 @@ function hybrid_model(model_params)
         DiffFusion.backward_flat_volatility("",t0, [ d[("USD_f_1","")] d[("USD_f_2","")] d[("USD_f_3","")] ]' ),  # sigma
         ch,
         fx_usd_eur,
-        DiffFusion.ZeroRateScaling,
+        scaling_type, # DiffFusion.ZeroRateScaling,
     )
     fx_gbp_eur = DiffFusion.lognormal_asset_model(
         "GBP-EUR",
@@ -310,7 +320,7 @@ function hybrid_model(model_params)
         DiffFusion.backward_flat_volatility("",t0, [ d[("GBP_f_1","")] d[("GBP_f_2","")] d[("GBP_f_3","")] ]' ),  # sigma
         ch,
         fx_gbp_eur,
-        DiffFusion.ZeroRateScaling,
+        scaling_type, # DiffFusion.ZeroRateScaling,
     )
     #
     models = [ hjm_eur, fx_usd_eur, hjm_usd, fx_gbp_eur, hjm_gbp ]
@@ -337,16 +347,14 @@ end
 
 
 """
-    update_plots!(
-    param_list, # ::AbstractArray{<:Tuple},
-    model_params,
-    std_table,
-    corr_table;
-    plot_vols = false,
-    plot_rates_corrs = false,
-    plot_fx_corrs = false,
-    plot_fx_rates_corrs = false,
-    plot_rates_rates_corrs = false,
+    update_rates_plots!(
+        param_list, # ::AbstractArray{<:Tuple},
+        model_params,
+        std_table,
+        corr_table;
+        plot_vols = false,
+        plot_rates_corrs = false,
+        scaling_type = DiffFusion.ZeroRateScaling,
     )
 
 Generate plots of historical and model-implied volatilities
@@ -361,13 +369,14 @@ function update_rates_plots!(
     corr_table;
     plot_vols = false,
     plot_rates_corrs = false,
+    scaling_type = DiffFusion.ZeroRateScaling,
     )
     #
     for t in param_list
         model_params[(t[1], t[2])] = t[3]
     end
     #
-    (ctx, mdl, ch) = rates_model(model_params)
+    (ctx, mdl, ch) = rates_model(model_params, scaling_type)
     keys_and_terms = [
         ("EUR", 1),
         ("EUR", 2),
@@ -407,6 +416,7 @@ end
         plot_fx_corrs = false,
         plot_fx_rates_corrs = false,
         plot_rates_rates_corrs = false,
+        scaling_type = DiffFusion.ZeroRateScaling,
         )
 
 Generate plots of historical and model-implied volatilities
@@ -424,13 +434,14 @@ function update_hybrid_plots!(
     plot_fx_corrs = false,
     plot_fx_rates_corrs = false,
     plot_rates_rates_corrs = false,
+    scaling_type = DiffFusion.ZeroRateScaling,
     )
     #
     for t in param_list
         model_params[(t[1], t[2])] = t[3]
     end
     #
-    (ctx, mdl, ch) = hybrid_model(model_params)
+    (ctx, mdl, ch) = hybrid_model(model_params, scaling_type)
     keys_and_terms = [
         ("EUR", 1),
         ("EUR", 2),
@@ -527,7 +538,7 @@ end
 
 
 """
-    rates_model_outputs(X::AbstractVector)
+    rates_model_outputs(X::AbstractVector, scaling_type)
 
 Specify a vector-valued function Y = F(X) that takes as input a float vector
 and calculates as output a float vector.
@@ -537,7 +548,7 @@ volatilities and correlations.
 
 This method is used to calculate model parameter sensitivities via AD.
 """
-function rates_model_outputs(X::AbstractVector)
+function rates_model_outputs(X::AbstractVector, scaling_type)
     @assert length(X) == 12
     model_params = Dict([
         (("delta_1", ""), X[1]),
@@ -557,7 +568,7 @@ function rates_model_outputs(X::AbstractVector)
         (("EUR_f_1", "EUR_f_3"), X[12]),
     ])
     #
-    (ctx, mdl, ch) = rates_model(model_params)
+    (ctx, mdl, ch) = rates_model(model_params, scaling_type)
     keys_and_terms = [
         ("EUR", 1),
         ("EUR", 2),
@@ -583,7 +594,7 @@ end
 Calculate model parameter sensitivities via ForwardDiff AD and
 create a structured heatmap plot to visualise sensitivities.
 """
-function plot_model_sensitivities(model_params)
+function plot_model_sensitivities(model_params, scaling_type = DiffFusion.ZeroRateScaling,)
     #
     X = [
         model_params[("delta_1", "")],
@@ -603,7 +614,8 @@ function plot_model_sensitivities(model_params)
         model_params[("EUR_f_1", "EUR_f_3")],
     ]
     #
-    J = ForwardDiff.jacobian(rates_model_outputs, X)
+    F(X) = rates_model_outputs(X, scaling_type)
+    J = ForwardDiff.jacobian(F, X)
     display("text/markdown", "## Jacobian Matrix:")
     show(stdout, "text/plain", round.(J, digits=4))
     #
@@ -746,7 +758,7 @@ function plot_model_sensitivities(model_params)
     relayout!(p,
         height = 800,
         width = 1200,
-        title = "Refrence Rate Sensitivities: Volatility (top) and Correlations (bottom)",
+        title = "Reference Rate Sensitivities: Volatility (top) and Correlations (bottom)",
         yaxis_autorange = "reversed",
         yaxis2_autorange = "reversed",
         yaxis3_autorange = "reversed",
