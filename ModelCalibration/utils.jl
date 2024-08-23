@@ -620,31 +620,32 @@ function plot_model_sensitivities(model_params, scaling_type = DiffFusion.ZeroRa
     show(stdout, "text/plain", round.(J, digits=4))
     #
     x_labels = [
-        "delta_1",
-        "delta_2",
-        "delta_3",
+        "δ_1",
+        "δ_2",
+        "δ_3",
         #
-        "chi_1",
-        "chi_2",
-        "chi_3",
+        "χ_1",
+        "χ_2",
+        "χ_3",
         #
-        "EUR_f_1",
-        "EUR_f_2",
-        "EUR_f_3",
+        "σ_1",
+        "σ_2",
+        "σ_3",
         #
-        "EUR_f_1__EUR_f_2",
-        "EUR_f_2__EUR_f_3",
-        "EUR_f_1__EUR_f_3",
+        "Γ_1,2",
+        "Γ_2,3",
+        "Γ_1,3",
     ]
     #
     rf_eur = [ ("EUR", 1), ("EUR", 2), ("EUR", 5), ("EUR", 10), ("EUR", 15), ("EUR", 20),]
     y_labels_vol = [
-        l[1] * "_" * string(l[2])
+        "σ(" * string(l[2]) * "y)"
         for l in rf_eur
     ]
     idx = make_index_list(rf_eur)
     y_labels_corr = [
-        l[1] * "_" * string(l[2]) * "__" * l[3] * "_" * string(l[4])
+        # l[1] * "_" * string(l[2]) * "__" * l[3] * "_" * string(l[4])
+        "Γ(" * string(l[2]) * "y, " * string(l[4]) * "y)"
         for l in idx
     ]
     y_labels = vcat(y_labels_vol, y_labels_corr)
