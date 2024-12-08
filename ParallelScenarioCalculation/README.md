@@ -37,7 +37,7 @@ The `init.sh` script then performs the following tasks:
 
 Workloads are implemented in script `Workloads.jl`. The script can be configured via several parameters.
 
-From `/home/celery/DiffFusionParallel/src` run
+From `/home/celery/DiffFusionExamples.jl/ParallelScenarioCalculation/src` run
 
 ```
 julia --project=. Workloads.jl -h
@@ -71,8 +71,8 @@ optional arguments:
   -r R                  result file name (default: "Workloads.csv")
   -l L                  log file name (default: "Workloads.log")
   -c C                  configuration name; must be one of
-                        G3_1FACTOR_FLAT, G3_1FACTOR_TS or G3_3FACTOR_TS
-                        (default: "G3_1FACTOR_TS")
+                        G3_1FACTOR_FLAT, G3_1FACTOR_TS or
+                        G3_3FACTOR_TS (default: "G3_1FACTOR_TS")
   --with-single-thread  compare with single-threaded valuation
   --run-in-parallel     run products for all available threads/workers
   --strategy STRATEGY   parallel strategy; must be one of MT, DIST or
