@@ -210,6 +210,9 @@ function run_products(parsed_args)
     # Run MC risk factor simulation
     #
     @info "Simlate MC paths..."
+    obj_dict["config/simulation"]["simulation_times"]["start"] = 0.0
+    obj_dict["config/simulation"]["simulation_times"]["step"]  = 0.25
+    obj_dict["config/simulation"]["simulation_times"]["stop"]  = 10.0
     obj_dict["config/simulation"]["n_paths"] = parsed_args["n"]
     time_ = @elapsed @time path_ = DiffFusion.Examples.path!(obj_dict)
     @info "Simulated " * string(DiffFusion.length(path_)) * " paths."
