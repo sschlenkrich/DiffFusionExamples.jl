@@ -4,6 +4,7 @@ using Base.Threads
 using ArgParse
 using CSV
 using DataFrames
+using Dates
 @everywhere using DiffFusion
 using LinearAlgebra
 using OrderedCollections
@@ -160,6 +161,9 @@ function main()
         append!(results, df)
         rm(parsed_args["r"] * "." * string(n_threads_processes))
     end
+    results[!, "n_paths"] .= parsed_args["n"]
+    results[!, "strategy"] .= strategy
+    results[!, "now_time"] .= now()
     CSV.write(parsed_args["r"], results)
 end
 
