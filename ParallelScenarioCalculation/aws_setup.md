@@ -18,6 +18,7 @@ Large machine
   - Region us-east-2, US East (Ohio)
   - Instance type: hpc6a (96 vCPU, no hyper threading)
   - User: celery
+  - Some details [here](https://aws.amazon.com/de/blogs/aws/new-amazon-ec2-hpc6a-instance-optimized-for-high-performance-computing/)
 
 
 ## User Setup and Login

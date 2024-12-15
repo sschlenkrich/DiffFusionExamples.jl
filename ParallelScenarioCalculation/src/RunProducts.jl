@@ -282,6 +282,9 @@ function run_products(parsed_args)
                 write(f, "Run s/t calculation for $product, n_prods $n_prods in " * string(time_) * " sec. with residuum $residuum.\n")
             end
         end
+        #
+        # YAML.write_file("scens_w_cb.yml", DiffFusion.serialise(scens_w_cb))
+        # YAML.write_file("scens_cva.yml", DiffFusion.serialise(scens_cva))
     end
     result_table = DataFrame(results)
     println(result_table)
