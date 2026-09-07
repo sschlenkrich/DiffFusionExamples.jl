@@ -1,4 +1,4 @@
-## Bermudan Swaption Exposure Calculation
+# Bermudan Swaption Exposure Calculation
 
 This example illustrates the pricing and exposure simulation of Bermudan swaptions in [DiffFusion.jl](https://github.com/frame-consulting/DiffFusion.jl).
 
