@@ -35,3 +35,11 @@ This example illustrates the calibration of multi-factor interest rate models (s
 As calibration objectives we use volatilities and correlations observed from historical time series of financial risk factors.
 
 See also Schlenkrich, Sebastian and Miemiec, André, A Cross Asset Hybrid Model Calibrated to Historical Market Data (November 22, 2024). Available at SSRN: https://ssrn.com/abstract=5030161 or http://dx.doi.org/10.2139/ssrn.5030161.
+
+## Bermudan Callable Floater
+
+See folder [CallableFloater](CallableFloater).
+
+This example illustrates the pricing of a Bermudan callable Floater in [DiffFusion.jl](https://github.com/frame-consulting/DiffFusion.jl).
+
+The valuation model captures stochastic credit spreads and recovery payment at default.
