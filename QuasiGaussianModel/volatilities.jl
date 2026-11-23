@@ -38,14 +38,20 @@ function implied_volatilities(
     yts::DiffFusion.YieldTermstructure,
     )
     (fixed_times, fixed_weights) = swap_flows(exercise_time, swap_time)
-    return DiffFusion.implied_swaption_volatilities(
-        sim,
-        yts,
-        exercise_time,
-        fixed_times,
-        fixed_weights,
-        rel_strikes,
-    )
+    local vol
+    try
+        vol = DiffFusion.implied_swaption_volatilities(
+            sim,
+            yts,
+            exercise_time,
+            fixed_times,
+            fixed_weights,
+            rel_strikes,
+        )
+    catch
+        vol = zeros(size(rel_strikes))
+    end
+    return vol
 end
 
 
