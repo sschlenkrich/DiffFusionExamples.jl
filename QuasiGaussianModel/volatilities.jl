@@ -1,6 +1,22 @@
 
-function simulation_times(end_time, step_size, decay = 0.5, min_step = 1.0/365)
-    times = Float64[]
+"""
+    simulation_times(
+        end_time::DiffFusion.ModelTime,
+        step_size::DiffFusion.ModelTime,
+        decay::DiffFusion.ModelTime = 0.5,
+        min_step::DiffFusion.ModelTime = 1.0/365
+    )
+
+Generate Monte-Carlo simulation times.
+"""
+function simulation_times(
+    end_time::DiffFusion.ModelTime,
+    step_size::DiffFusion.ModelTime,
+    decay::DiffFusion.ModelTime = 0.5,
+    min_step::DiffFusion.ModelTime = 1.0/365
+    )
+    #
+    times = DiffFusion.ModelTime[]
     t = step_size
     while t > min_step
         push!(times, t *= decay)
@@ -14,33 +30,53 @@ function simulation_times(end_time, step_size, decay = 0.5, min_step = 1.0/365)
 end
 
 
-function swap_flows(exercise_time, swap_time)
+"""
+    swap_cash_flows(
+        exercise_time::DiffFusion.ModelTime,
+        swap_time::DiffFusion.ModelTime,
+    )
+
+Generate fixed leg cash flow times and annuity weights.
+
+We apply the following simplifying assumptions:
+  - annual cash flows,
+  - unit day count convention,
+  - no settlement offset.
+
+Change or replace this function to incorporate actual market conventions.
+"""
+function swap_cash_flows(
+    exercise_time::DiffFusion.ModelTime,
+    swap_time::DiffFusion.ModelTime,
+    )
+    #
     fixed_times = collect(exercise_time:1.0:exercise_time+swap_time)
     fixed_weights = ones(length(fixed_times)-1)
     return (fixed_times = fixed_times, fixed_weights)
 end
 
 
-function swap_rate(yts, exercise_time, swap_time)
-    cf = swap_flows(exercise_time, swap_time)
-    df = [ yts(t) for t in cf.fixed_times ]
-    float_leg = df[begin] - df[end]
-    annuity = sum(df[2:end] .* cf.fixed_weights)
-    return float_leg / annuity
-end
+"""
+    implied_volatilities(
+        sim::DiffFusion.Simulation,
+        exercise_time::DiffFusion.ModelTime,
+        swap_time::DiffFusion.ModelTime,
+        rel_strikes::Vector,
+        yts::DiffFusion.YieldTermstructure,
+    )
 
-
+Calculate implied volatility smile and swap rates from a simulation
+and exercise time and swap time.
+"""
 function implied_volatilities(
     sim::DiffFusion.Simulation,
-    exercise_time::Float64,
-    swap_time::Float64,
-    rel_strikes::Array{Float64},
+    exercise_time::DiffFusion.ModelTime,
+    swap_time::DiffFusion.ModelTime,
+    rel_strikes::Vector,
     yts::DiffFusion.YieldTermstructure,
     )
-    (fixed_times, fixed_weights) = swap_flows(exercise_time, swap_time)
-    local vol
-    try
-        vol = DiffFusion.implied_swaption_volatilities(
+    (fixed_times, fixed_weights) = swap_cash_flows(exercise_time, swap_time)
+    (vol, swap_rate, swap_rate_yts) = DiffFusion.implied_swaption_volatilities(
             sim,
             yts,
             exercise_time,
@@ -48,26 +84,36 @@ function implied_volatilities(
             fixed_weights,
             rel_strikes,
         )
-    catch
-        vol = zeros(size(rel_strikes))
-    end
-    return vol
+    return (swap_rate, swap_rate_yts, vol)
 end
 
 
+"""
+    implied_volatilities(
+        sim::DiffFusion.Simulation,
+        exercise_times::Vector,
+        swap_times::Vector,
+        rel_strikes::Vector,
+        yts::DiffFusion.YieldTermstructure,
+    )
+
+Calculate implied volatility smiles and swap rates from a simulation
+and exercise times and swap times.
+
+Returns result as DataFrame.
+"""
 function implied_volatilities(
     sim::DiffFusion.Simulation,
-    exercise_times::Array{Float64},
-    swap_times::Array{Float64},
-    rel_strikes::Array{Float64},
+    exercise_times::Vector,
+    swap_times::Vector,
+    rel_strikes::Vector,
     yts::DiffFusion.YieldTermstructure,
     )
     data = [
         vcat(
             exercise_time,
             swap_time,
-            swap_rate(yts, exercise_time, swap_time),
-            implied_volatilities(sim, exercise_time, swap_time, rel_strikes, yts)
+            implied_volatilities(sim, exercise_time, swap_time, rel_strikes, yts)...
         )
         for exercise_time in exercise_times, swap_time in swap_times
     ]
@@ -75,6 +121,7 @@ function implied_volatilities(
     names = [
         "exercise_time",
         "swap_time",
+        "forward_sim",
         "forward",
     ]
     rel_strikes_str = [
